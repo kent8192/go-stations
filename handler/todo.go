@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -96,6 +97,30 @@ func (h *TODOHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+	case http.MethodDelete:
+		var req model.DeleteTODORequest
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if len(req.IDs) == 0 {
+			http.Error(w, "The list of ids is empty", http.StatusBadRequest)
+			return
+		}
+		resp, err := h.Delete(r.Context(), &req)
+		if err != nil {
+			if errors.Is(err, &model.ErrNotFound{}) {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	default:
 		http.Error(w, "Unsupported HTTP Method", http.StatusBadRequest)
 	}
@@ -126,7 +151,6 @@ func (h *TODOHandler) Read(ctx context.Context, req *model.ReadTODORequest) (*mo
 		return nil, err
 	}
 
-	// Convert []*model.TODO to []model.TODO
 	todos := make([]model.TODO, len(todosPtrs))
 	for i, todoPtr := range todosPtrs {
 		todos[i] = *todoPtr
@@ -150,6 +174,6 @@ func (h *TODOHandler) Update(ctx context.Context, req *model.UpdateTODORequest) 
 
 // Delete handles the endpoint that deletes the TODOs.
 func (h *TODOHandler) Delete(ctx context.Context, req *model.DeleteTODORequest) (*model.DeleteTODOResponse, error) {
-	err := h.svc.DeleteTODO(ctx, nil)
+	err := h.svc.DeleteTODO(ctx, req.IDs)
 	return &model.DeleteTODOResponse{}, err
 }
