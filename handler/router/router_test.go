@@ -9,7 +9,7 @@ import (
 )
 
 func TestPanicRecovery(t *testing.T) {
-	todoDB := testutils.SetUpTestDB(t) // テスト用のDBセットアップ関数、実装に応じて変更してください
+	todoDB := testutils.SetUpTestDB(t)
 	router := NewRouter(todoDB)
 
 	server := httptest.NewServer(router)
