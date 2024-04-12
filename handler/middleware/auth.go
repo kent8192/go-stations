@@ -11,15 +11,18 @@ func Auth(h http.Handler) http.Handler {
 		targetPass := os.Getenv("PASSWORD")
 		id, pass, ok := r.BasicAuth()
 		if !ok {
-			http.Error(w, "An error occurred during authentication.", http.StatusInternalServerError)
+			http.Error(w, "An error occurred during authentication", http.StatusBadRequest)
+			return
 		}
 		if id != targetID {
-			http.Error(w, "ID unmatched", http.StatusInternalServerError)
-		} else if pass != targetPass {
-			http.Error(w, "Password unmatched", http.StatusInternalServerError)
-		} else {
-			h.ServeHTTP(w, r)
+			http.Error(w, "ID unmatched", http.StatusUnauthorized)
+			return
 		}
+		if pass != targetPass {
+			http.Error(w, "Password unmatched", http.StatusUnauthorized)
+			return
+		}
+		h.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)
 }
