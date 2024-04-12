@@ -8,16 +8,21 @@ import (
 
 	"github.com/TechBowl-japan/go-stations/db"
 	"github.com/TechBowl-japan/go-stations/handler/router"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	err := realMain()
+	err := loadEnv()
+	if err != nil {
+		log.Fatalln("Failed to load .env", err)
+	}
+	err = setUpServer()
 	if err != nil {
 		log.Fatalln("main: failed to exit successfully, err =", err)
 	}
 }
 
-func realMain() error {
+func setUpServer() error {
 	// config values
 	const (
 		defaultPort   = ":8080"
@@ -56,4 +61,11 @@ func realMain() error {
 		return err
 	}
 	return nil
+}
+
+// .envを呼び出します。
+func loadEnv() error {
+
+	err := godotenv.Load(".env")
+	return err
 }
