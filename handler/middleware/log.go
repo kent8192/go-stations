@@ -33,8 +33,6 @@ func AccessLog(h http.Handler) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(logJSON)
 			fmt.Println(string(logJSON))
 		}(timestamp)
 	}
