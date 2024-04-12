@@ -10,7 +10,7 @@ import (
 
 func TestRecoveryMiddlewareUserAgentContext(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		val := r.Context().Value(middleware.ContextKey("User-Agent"))
+		val := r.Context().Value(middleware.DeviceKey("User-Agent"))
 		if val == nil {
 			t.Error("User-Agentがコンテキストに含まれていません")
 			return

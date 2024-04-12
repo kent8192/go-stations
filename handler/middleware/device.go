@@ -5,12 +5,12 @@ import (
 	"net/http"
 )
 
-type ContextKey string
+type DeviceKey string
 
 func Device(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		k := ContextKey("User-Agent")
-		ctx := context.WithValue(context.Background(), k, r.UserAgent())
+		k := DeviceKey("User-Agent")
+		ctx := context.WithValue(r.Context(), k, r.UserAgent())
 		r = r.WithContext(ctx)
 		h.ServeHTTP(w, r)
 	}
