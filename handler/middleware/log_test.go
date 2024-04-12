@@ -26,7 +26,10 @@ func TestAccessLog(t *testing.T) {
 			req, _ := http.NewRequest("GET", testServer.URL, nil)
 			userAgentString := "TestUserAgent"
 			req.Header.Set("User-Agent", userAgentString)
-			resp, _ := client.Do(req)
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fatalf("リクエストの送信に失敗しました: %v", err)
+			}
 			defer resp.Body.Close()
 			if resp.StatusCode != http.StatusOK {
 				t.Errorf("期待されるステータスコード200が返されませんでした。実際のステータスコード: %v", resp.StatusCode)
