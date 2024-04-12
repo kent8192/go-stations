@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -19,7 +18,7 @@ func AccessLog(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 		defer func(accessDate time.Time) {
 			latency := time.Since(accessDate)
-			userAgent, ok := r.Context().Value(ContextKey("User-Agent")).(string)
+			userAgent, ok := r.Context().Value(DeviceKey("User-Agent")).(string)
 			if !ok {
 				userAgent = "Unknown"
 			}
@@ -28,12 +27,7 @@ func AccessLog(h http.Handler) http.Handler {
 				Latency:   latency.Milliseconds(),
 				OS:        userAgent,
 			}
-			logJSON, err := json.Marshal(log)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			fmt.Println(string(logJSON))
+			fmt.Printf("%v", log)
 		}(timestamp)
 	}
 	return http.HandlerFunc(fn)
