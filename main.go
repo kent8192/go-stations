@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/110y/run"
 	"github.com/TechBowl-japan/go-stations/db"
+	. "github.com/TechBowl-japan/go-stations/handler/middleware"
 	"github.com/TechBowl-japan/go-stations/handler/router"
 	"github.com/joho/godotenv"
 )
@@ -16,13 +19,22 @@ func main() {
 	if err != nil {
 		log.Fatalln("Failed to load .env", err)
 	}
-	err = setUpServer()
-	if err != nil {
-		log.Fatalln("main: failed to exit successfully, err =", err)
-	}
+
+	run.Run(func(ctx context.Context) int {
+		if err := setUpServer(ctx); err != nil {
+			log.Fatalln("main: failed to exit successfully, err =", err)
+			return 1
+		}
+		return 0
+	})
 }
 
-func setUpServer() error {
+func loadEnv() error {
+	err := godotenv.Load(".env")
+	return err
+}
+
+func setUpServer(ctx context.Context) error {
 	// config values
 	const (
 		defaultPort   = ":8080"
@@ -56,16 +68,22 @@ func setUpServer() error {
 	// NOTE: 新しいエンドポイントの登録はrouter.NewRouterの内部で行うようにする
 	mux := router.NewRouter(todoDB)
 
+	// setUpServer関数内の一部
+	server := &http.Server{
+		Addr:    port,
+		Handler: mux,
+	}
+
+	// Graceful Shutdownの設定
+	GracefulShutdown(server)
+
+	go func() {
+		<-ctx.Done()
+	}()
+
 	log.Println("Starting server on", port)
-	if err := http.ListenAndServe(port, mux); err != nil {
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return err
 	}
 	return nil
-}
-
-// .envを呼び出します。
-func loadEnv() error {
-
-	err := godotenv.Load(".env")
-	return err
 }

@@ -27,7 +27,7 @@ func AccessLog(h http.Handler) http.Handler {
 				Latency:   latency.Milliseconds(),
 				OS:        userAgent,
 			}
-			fmt.Printf("%v", log)
+			fmt.Printf("%v\n", log)
 		}(timestamp)
 	}
 	return http.HandlerFunc(fn)
